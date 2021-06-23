@@ -14,6 +14,9 @@ const ball = {
     x: canvas.width / 2,
     y: canvas.height / 2,
     size: 10,
+    speed: 4,
+    dx: 4,
+    dy: -4
 };
 
 // Create paddle props
@@ -40,7 +43,7 @@ const brickInfo = {
 const bricks = [];
 for (let i = 0; i < brickRowCount; i++) {
     bricks[i] = [];
-    for(let j = 0; j < brickColumnCount; j++) {
+    for (let j = 0; j < brickColumnCount; j++) {
         const x = i * (brickInfo.w + brickInfo.padding) + brickInfo.offsetX;
         const y = j * (brickInfo.h + brickInfo.padding) + brickInfo.offsetY;
         bricks[i][j] = { x, y, ...brickInfo };
@@ -68,7 +71,7 @@ function drawPaddle() {
 // Draw score on canvas
 function drawScore() {
     ctx.font = '20px Arial',
-    ctx.fillText(`Score: ${score}`, canvas.width - 100, 30);
+        ctx.fillText(`Score: ${score}`, canvas.width - 100, 30);
 };
 
 // Draw bricks on canvas
@@ -89,14 +92,54 @@ function movePaddle() {
     paddle.x += paddle.dx;
 
     // Wall detection right side 
-    if(paddle.x + paddle.w > canvas.width) {
+    if (paddle.x + paddle.w > canvas.width) {
         paddle.x = canvas.width - paddle.w;
     };
 
     // Wall detection left side 
-    if(paddle.x < 0){
+    if (paddle.x < 0) {
         paddle.x = 0;
     };
+};
+
+// Move ball on canvas
+function moveBall() {
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+    // Wall collision (right/left)
+    if (ball.x + ball.size > canvas.width || ball.x - ball.size < 0) {
+        ball.dx *= -1; // returns the ball the other direction by reversing its speed
+    };
+
+    // Wall collision (top/bottom)
+    if (ball.y + ball.size > canvas.height || ball.y - ball.size < 0) {
+        ball.dy *= -1;
+    };
+
+    // Paddle collision (left, right and top)
+    if (ball.x - ball.size > paddle.x &&
+        ball.x + ball.size < paddle.x + paddle.w &&
+        ball.y + ball.size > paddle.y
+    ) {
+        ball.dy = -ball.speed;
+    };
+
+    // Brick collision
+    bricks.forEach(column => {
+        column.forEach(brick => {
+            if (brick.visible) {
+                if (ball.x - ball.size > brick.x && // left brick side
+                    ball.x + ball.size < brick.x + brick.w && // right brick side
+                    ball.y + ball.size > brick.y && // top brick side
+                    ball.y - ball.size < brick.y + brick.h // bottom brick side
+                ) {
+                    ball.dy *= -1;
+                    brick.visible = false;
+                };
+            };
+        });
+    });
 };
 
 // Draw everything
@@ -113,6 +156,7 @@ function draw() {
 // Update canvas drawing and animation
 function update() {
     movePaddle();
+    moveBall();
 
     draw();
 
@@ -123,18 +167,18 @@ update();
 
 // Keydown event
 function keyDown(e) {
-    if(e.key === 'Right' || e.key === 'ArrowRight') {
+    if (e.key === 'Right' || e.key === 'ArrowRight') {
         paddle.dx = paddle.speed;
-    } else if(e.key === 'Left' || e.key === 'ArrowLeft') {
+    } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
         paddle.dx = -paddle.speed;
     };
 };
 
 // Keyup event
 function keyUp(e) {
-    if(e.key === 'Right' || e.key === 'ArrowRight' || e.key === 'Left' || e.key === 'ArrowLeft') {
+    if (e.key === 'Right' || e.key === 'ArrowRight' || e.key === 'Left' || e.key === 'ArrowLeft') {
         paddle.dx = 0;
-    }
+    };
 };
 
 // Keyboard event handlers
