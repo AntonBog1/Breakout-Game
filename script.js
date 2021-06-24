@@ -136,9 +136,33 @@ function moveBall() {
                 ) {
                     ball.dy *= -1;
                     brick.visible = false;
+
+                    increaseScore();
                 };
             };
         });
+    });
+
+    // Hit bottom wall - lose
+    if (ball.y + ball.size > canvas.height) {
+        showAllBricks();
+        score = 0;
+    };
+};
+
+// Increase score
+function increaseScore() {
+    score++;
+
+    if (score % (brickRowCount * brickColumnCount) === 0) {
+        showAllBricks();
+    };
+};
+
+// Make all bricks appear
+function showAllBricks() {
+    bricks.forEach(column => {
+        column.forEach(brick => (brick.visible = true));
     });
 };
 
